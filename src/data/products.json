@@ -1,0 +1,55 @@
+{
+  "bestSellers": [
+    {
+      "id": "bs_loreal_micellar",
+      "title": "Nước tẩy trang L'Oreal Micellar Water",
+      "url": "https://s.shopee.vn/9ANRYubVPV",
+      "image": "https://down-vn.img.susercontent.com/file/sg-11134201-825ah-mr3i5vebz0g5ff.webp",
+      "platform": "shopee"
+    },
+    {
+      "id": "bs_cerave_cleanser",
+      "title": "Sữa rửa mặt CeraVe Foaming Cleanser",
+      "url": "https://s.shopee.vn/60QPnD6jRo",
+      "image": "https://down-vn.img.susercontent.com/file/sg-11134201-825ac-mr8l53nfwwlh6d.webp",
+      "platform": "shopee"
+    },
+    {
+      "id": "bs_silcot_pads",
+      "title": "Bông tẩy trang Silcot Unicharm",
+      "url": "https://s.shopee.vn/9pd8MKTqTI",
+      "image": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mr8a01eeh4ow22.webp",
+      "platform": "shopee"
+    }
+  ],
+  "hotTrending": [
+    {
+      "id": "ht_laroche_serum",
+      "title": "Serum Chống Nắng La Roche-Posay Anthelios",
+      "url": "https://s.shopee.vn/AAFylHgA1x",
+      "image": "https://down-vn.img.susercontent.com/file/sg-11134201-825a4-mr9o8sn74f0gc4.webp",
+      "platform": "shopee"
+    },
+    {
+      "id": "ht_loreal_watergel",
+      "title": "Kem Chống Nắng Water Gel L'Oreal UV Defender",
+      "url": "https://s.shopee.vn/50Xsc0Kq7C",
+      "image": "https://down-vn.img.susercontent.com/file/sg-11134201-825a4-mr3i5tlvco3w45.webp",
+      "platform": "shopee"
+    },
+    {
+      "id": "ht_dove_body_scrub",
+      "title": "Tẩy Tế Bào Chết Body Dove Exfoliating Scrub",
+      "url": "https://s.shopee.vn/9fJiAv4Lvk",
+      "image": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqfuwmnwf4enb7.webp",
+      "platform": "shopee"
+    },
+    {
+      "id": "ht_indomie_noodles",
+      "title": "Mì Trộn Khô Indomie Mi Goreng Cốt Dừa",
+      "url": "https://s.shopee.vn/6pzWnlNl2p",
+      "image": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mmilq314scu9b0.webp",
+      "platform": "shopee"
+    }
+  ]
+}

@@ -126,62 +126,46 @@ export function normalizeUrl(url: string, platform: PlatformType): string {
   }
 }
 
-export function extractTitle(url: string): string {
-  try {
-    const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
-    const parts = parsed.pathname.split('/').filter(Boolean);
-    const last = parts[parts.length - 1] || '';
-    if (last && !last.match(/^(i\d+|\d+)$/i)) {
-      const title = last
-        .replace(/\.html$/i, '')
-        .replace(/[-_]+/g, ' ')
-        .replace(/\b\w/g, (l) => l.toUpperCase());
-      if (title.length > 5) return title.length > 50 ? title.slice(0, 47) + '...' : title;
-    }
-  } catch {
-    // ignore
+export async function requestAccessTradeConversion(originalUrl: string, subId: string = 'default'): Promise<ConvertedLink> {
+  const response = await fetch('/api/affiliate/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      original_url: originalUrl,
+      sub_id: subId,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.error || 'AccessTrade API Error');
   }
-  return 'Product Link';
+
+  return data.data;
 }
 
-export function generateHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  const positive = Math.abs(hash).toString(36);
-  return (positive + 'x9k2m7q').slice(0, 6);
-}
+export async function requestAccessTradeBatchConversion(urls: string[], subId: string = 'batch'): Promise<ConvertedLink[]> {
+  const response = await fetch('/api/affiliate/generate-batch', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      urls,
+      sub_id: subId,
+    }),
+  });
 
-export function createCleanShortLink(originalUrl: string, subId: string = 'default'): ConvertedLink {
-  const platform = detectPlatform(originalUrl);
-  const normalizedUrl = normalizeUrl(originalUrl, platform);
-  const hash = generateHash(originalUrl + Date.now().toString());
-  const title = extractTitle(originalUrl);
+  const data = await response.json();
 
-  let shortUrl = '';
-  if (platform === 'shopee') {
-    shortUrl = `https://shope.ee/${hash}`;
-  } else if (platform === 'tiktok') {
-    shortUrl = `https://vt.tiktok.com/${hash}`;
-  } else if (platform === 'lazada') {
-    shortUrl = `https://s.lazada.co/${hash}`;
-  } else {
-    shortUrl = `https://link.short/${hash}`;
+  if (!response.ok || !data.success) {
+    throw new Error(data.error || 'AccessTrade API Error');
   }
 
-  return {
-    id: `link_${Date.now()}_${hash}`,
-    originalUrl,
-    normalizedUrl,
-    affiliateUrl: originalUrl, // Direct link
-    shortUrl,
-    platform,
-    subId,
-    createdAt: new Date().toISOString(),
-    title,
-  };
+  return data.data;
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {

@@ -1,0 +1,66 @@
+[
+  {
+    "category": "Thời trang",
+    "icon": "Shirt",
+    "items": [
+      {
+        "name": "Adidas",
+        "url": "https://shorten.asia/cvvwe13f"
+      },
+      {
+        "name": "Biti's",
+        "url": "https://shorten.asia/mJwQAryG"
+      }
+    ]
+  },
+  {
+    "category": "Du lịch",
+    "icon": "Plane",
+    "items": [
+      {
+        "name": "Vietnam Airlines",
+        "url": "https://shorten.asia/YeZZHKw4"
+      },
+      {
+        "name": "Klook",
+        "url": "https://shorten.asia/HH3hjZPp"
+      },
+      {
+        "name": "Traveloka",
+        "url": "https://shorten.asia/GuSX8wbU"
+      }
+    ]
+  },
+  {
+    "category": "Tài chính",
+    "icon": "CreditCard",
+    "items": [
+      {
+        "name": "Thẻ tín dụng VIB",
+        "url": "https://shorten.asia/pdmShKMW"
+      },
+      {
+        "name": "Thẻ tín dụng VP Bank",
+        "url": "https://shorten.asia/6kYnhAgX"
+      }
+    ]
+  },
+  {
+    "category": "Điện tử - Gia dụng",
+    "icon": "Tv",
+    "items": [
+      {
+        "name": "Điện máy xanh",
+        "url": "https://shorten.asia/CF9Z1axc"
+      },
+      {
+        "name": "Thế giới di động",
+        "url": "https://shorten.asia/T5WmNHKv"
+      },
+      {
+        "name": "Con cưng",
+        "url": "https://shorten.asia/6nzACm9b"
+      }
+    ]
+  }
+]

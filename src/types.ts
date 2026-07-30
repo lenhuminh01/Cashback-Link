@@ -12,6 +12,14 @@ export interface ConvertedLink {
   title?: string;
 }
 
+export interface ProductItem {
+  id: string;
+  title: string;
+  url: string;
+  image: string;
+  platform: PlatformType;
+}
+
 export interface PlatformConfig {
   id: PlatformType;
   name: string;

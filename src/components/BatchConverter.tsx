@@ -1,31 +1,39 @@
 import React, { useState } from 'react';
-import { Layers, Copy, Check, Zap } from 'lucide-react';
+import { Layers, Copy, Check, Zap, ExternalLink } from 'lucide-react';
 import { ConvertedLink } from '../types';
-import { createCleanShortLink, PLATFORMS, copyToClipboard } from '../lib/utils';
+import { requestAccessTradeBatchConversion, PLATFORMS, copyToClipboard } from '../lib/utils';
 import { motion } from 'motion/react';
 
 interface BatchConverterProps {
-  onAddBatchToHistory: (links: ConvertedLink[]) => void;
+  onAddBatchToHistory?: (links: ConvertedLink[]) => void;
 }
 
 export const BatchConverter: React.FC<BatchConverterProps> = ({ onAddBatchToHistory }) => {
   const [rawText, setRawText] = useState('');
   const [results, setResults] = useState<ConvertedLink[]>([]);
-  const [copied, setCopied] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleProcessBatch = () => {
+  const handleProcessBatch = async () => {
     const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
     if (lines.length === 0) return;
 
     setIsProcessing(true);
+    setErrorMsg(null);
 
-    setTimeout(() => {
-      const converted = lines.map((l) => createCleanShortLink(l));
+    try {
+      const converted = await requestAccessTradeBatchConversion(lines);
       setResults(converted);
-      onAddBatchToHistory(converted);
+      if (onAddBatchToHistory) {
+        onAddBatchToHistory(converted);
+      }
       setIsProcessing(false);
-    }, 200);
+    } catch (err: any) {
+      setIsProcessing(false);
+      setErrorMsg(err.message || 'Không thể tạo link hàng loạt.');
+    }
   };
 
   const handleCopyAll = async () => {
@@ -33,8 +41,16 @@ export const BatchConverter: React.FC<BatchConverterProps> = ({ onAddBatchToHist
     const allShorts = results.map((r) => r.shortUrl).join('\n');
     const success = await copyToClipboard(allShorts);
     if (success) {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedAll(true);
+      setTimeout(() => setCopiedAll(false), 2000);
+    }
+  };
+
+  const handleCopySingle = async (id: string, text: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
     }
   };
 
@@ -52,7 +68,7 @@ export const BatchConverter: React.FC<BatchConverterProps> = ({ onAddBatchToHist
             </span>
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Dán nhiều đường link sản phẩm Shopee, TikTok Shop hoặc Lazada (mỗi link 1 dòng) để tạo hàng loạt.
+            Dán nhiều đường link sản phẩm Shopee, TikTok Shop hoặc Lazada (mỗi link 1 dòng).
           </p>
         </div>
       </div>
@@ -72,6 +88,12 @@ export const BatchConverter: React.FC<BatchConverterProps> = ({ onAddBatchToHist
           />
         </div>
 
+        {errorMsg && (
+          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs font-semibold text-rose-600 dark:text-rose-400">
+            {errorMsg}
+          </div>
+        )}
+
         {/* Process Button */}
         <button
           onClick={handleProcessBatch}
@@ -79,7 +101,7 @@ export const BatchConverter: React.FC<BatchConverterProps> = ({ onAddBatchToHist
           className="w-full py-3 px-4 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-500/20"
         >
           {isProcessing ? (
-            <span>Đang rút gọn hàng loạt...</span>
+            <span>Đang xử lý hàng loạt...</span>
           ) : (
             <>
               <Zap className="w-4 h-4 text-amber-300" />
@@ -104,26 +126,46 @@ export const BatchConverter: React.FC<BatchConverterProps> = ({ onAddBatchToHist
               onClick={handleCopyAll}
               className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-2xs flex items-center gap-1 transition-colors cursor-pointer"
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Đã copy tất cả!' : 'Copy Tất Cả Short Links'}</span>
+              {copiedAll ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedAll ? 'Đã copy tất cả!' : 'Copy Tất Cả Short Links'}</span>
             </button>
           </div>
 
-          <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="space-y-2.5 max-h-72 overflow-y-auto pr-0.5">
             {results.map((res, i) => (
               <div
-                key={i}
-                className="p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 text-xs font-mono flex items-center justify-between gap-2"
+                key={res.id || i}
+                className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 text-xs font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
               >
-                <div className="truncate flex-1">
+                <div className="truncate flex-1 min-w-0">
                   <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">
                     [{PLATFORMS[res.platform].name}]
                   </span>
-                  <span className="text-zinc-900 dark:text-zinc-100">{res.shortUrl}</span>
+                  <span className="text-zinc-900 dark:text-zinc-100 font-bold">{res.shortUrl}</span>
                 </div>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
-                  Xong
-                </span>
+
+                {/* Individual Actions for each short link */}
+                <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+                  <button
+                    onClick={() => handleCopySingle(res.id, res.shortUrl)}
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition-colors shadow-2xs cursor-pointer flex items-center gap-1"
+                    title="Copy short link này"
+                  >
+                    {copiedId === res.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span className="text-[11px] font-semibold">{copiedId === res.id ? 'Đã copy' : 'Copy'}</span>
+                  </button>
+
+                  <a
+                    href={res.shortUrl || res.affiliateUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-black dark:hover:bg-zinc-100 transition-colors cursor-pointer flex items-center gap-1"
+                    title="Truy cập link này"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-semibold">Truy cập</span>
+                  </a>
+                </div>
               </div>
             ))}
           </div>

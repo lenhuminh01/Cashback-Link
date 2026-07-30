@@ -3,23 +3,30 @@ import {
   X, 
   CheckCircle2, 
   Sparkles, 
-  Info, 
-  Flame
+  Info
 } from 'lucide-react';
 import { PlatformType, ConvertedLink } from '../types';
-import { detectPlatform, isValidUrl, PLATFORMS, createCleanShortLink, BEST_SELLERS } from '../lib/utils';
+import { detectPlatform, isValidUrl, PLATFORMS, requestAccessTradeConversion } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface UrlConverterProps {
   onConvert: (link: ConvertedLink) => void;
-  activePlatformFilter?: PlatformType | 'all';
+  externalUrl?: string;
 }
 
-export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
+export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert, externalUrl }) => {
   const [inputUrl, setInputUrl] = useState('');
   const [detectedPlatform, setDetectedPlatform] = useState<PlatformType>('unknown');
   const [isConverting, setIsConverting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sync externalUrl if provided (e.g. when clicking Best Sellers)
+  useEffect(() => {
+    if (externalUrl) {
+      setInputUrl(externalUrl);
+      processUrl(externalUrl);
+    }
+  }, [externalUrl]);
 
   // Auto detect platform when URL changes
   useEffect(() => {
@@ -33,7 +40,7 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
     }
   }, [inputUrl]);
 
-  const processUrl = (urlToProcess: string) => {
+  const processUrl = async (urlToProcess: string) => {
     const clean = urlToProcess.trim();
     if (!clean) {
       setErrorMsg('Vui lòng dán hoặc nhập đường link sản phẩm');
@@ -46,15 +53,23 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
     }
 
     setIsConverting(true);
+    setErrorMsg(null);
 
-    setTimeout(() => {
-      const link = createCleanShortLink(clean);
+    try {
+      // Call server-side API to generate tracking link
+      const link = await requestAccessTradeConversion(clean);
       onConvert(link);
       setIsConverting(false);
 
-      // Auto redirect/jump directly to product page
-      window.open(clean, '_blank', 'noopener,noreferrer');
-    }, 150);
+      // Auto jump/open the tracking short link to record click & credit commission!
+      const targetTrackingUrl = link.shortUrl || link.affiliateUrl;
+      if (targetTrackingUrl) {
+        window.open(targetTrackingUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (err: any) {
+      setIsConverting(false);
+      setErrorMsg(err.message || 'Không thể tạo link. Vui lòng kiểm tra lại đường link.');
+    }
   };
 
   const handleAction = async (e?: React.FormEvent) => {
@@ -77,7 +92,7 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
       }
     }
 
-    processUrl(targetUrl);
+    await processUrl(targetUrl);
   };
 
   const platformInfo = PLATFORMS[detectedPlatform];
@@ -85,7 +100,7 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-6 shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-200 dark:border-zinc-800 transition-all">
       {/* Main Input Form */}
-      <form onSubmit={handleAction} className="space-y-4">
+      <form onSubmit={handleAction} className="space-y-3">
         <div className="relative">
           {/* Label & Platform Badge */}
           <div className="flex items-center justify-between mb-2">
@@ -153,28 +168,6 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
               <span>{errorMsg}</span>
             </div>
           )}
-        </div>
-
-        {/* Best Sellers Section */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-            <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
-            Bán chạy:
-          </span>
-          {BEST_SELLERS.map((item, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                setInputUrl(item.url);
-                setErrorMsg(null);
-                processUrl(item.url);
-              }}
-              className="text-xs font-semibold px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition-colors border border-zinc-200 dark:border-zinc-800 cursor-pointer flex items-center gap-1"
-            >
-              <span>{item.label}</span>
-            </button>
-          ))}
         </div>
       </form>
     </div>

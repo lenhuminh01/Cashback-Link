@@ -3,13 +3,14 @@ import { Header } from './components/Header';
 import { UrlConverter } from './components/UrlConverter';
 import { ConversionResult } from './components/ConversionResult';
 import { QrCodeModal } from './components/QrCodeModal';
-import { HistoryList } from './components/HistoryList';
 import { BatchConverter } from './components/BatchConverter';
+import { BestSellers } from './components/BestSellers';
+import { HotTrending } from './components/HotTrending';
+import { BrandEcosystem } from './components/BrandEcosystem';
 import { Footer } from './components/Footer';
 import { ConvertedLink, ThemeMode } from './types';
-import { Link2, Layers, History } from 'lucide-react';
+import { Link2, Layers } from 'lucide-react';
 
-const LOCAL_STORAGE_KEY = 'short_link_history_v2';
 const LOCAL_STORAGE_THEME_KEY = 'short_link_theme_v2';
 
 export default function App() {
@@ -18,17 +19,9 @@ export default function App() {
     return (saved as ThemeMode) || 'system';
   });
 
-  const [activeTab, setActiveTab] = useState<'single' | 'batch' | 'history'>('single');
-  const [history, setHistory] = useState<ConvertedLink[]>(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
+  const [activeTab, setActiveTab] = useState<'single' | 'batch'>('single');
   const [latestConverted, setLatestConverted] = useState<ConvertedLink | null>(null);
+  const [selectedBestSellerUrl, setSelectedBestSellerUrl] = useState<string>('');
   const [qrModalLink, setQrModalLink] = useState<ConvertedLink | null>(null);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
@@ -57,34 +50,12 @@ export default function App() {
     }
   }, [theme]);
 
-  // Sync history to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(history));
-    } catch (e) {
-      console.error('Failed to save history to localStorage', e);
-    }
-  }, [history]);
-
   const handleNewConversion = (link: ConvertedLink) => {
     setLatestConverted(link);
-    setHistory((prev) => [link, ...prev.filter((item) => item.originalUrl !== link.originalUrl)]);
   };
 
-  const handleAddBatchToHistory = (batch: ConvertedLink[]) => {
-    setHistory((prev) => [...batch, ...prev]);
-  };
-
-  const handleDeleteHistoryLink = (id: string) => {
-    setHistory((prev) => prev.filter((item) => item.id !== id));
-    if (latestConverted?.id === id) {
-      setLatestConverted(null);
-    }
-  };
-
-  const handleClearHistory = () => {
-    setHistory([]);
-    setLatestConverted(null);
+  const handleSelectBestSeller = (url: string) => {
+    setSelectedBestSellerUrl(url);
   };
 
   const handleOpenQrModal = (link: ConvertedLink) => {
@@ -104,12 +75,12 @@ export default function App() {
       <Header
         theme={theme}
         setTheme={setTheme}
-        convertedCount={history.length}
+        convertedCount={0}
       />
 
       {/* Main Container */}
       <main className="relative z-10 flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {/* Description Subtitle */}
+        {/* Description Section */}
         <div className="text-center max-w-xl mx-auto mb-2">
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
             Dán đường link Shopee, TikTok Shop hoặc Lazada để làm sạch và tạo đường dẫn mua sắm.
@@ -142,27 +113,19 @@ export default function App() {
               <Layers className="w-4 h-4" />
               <span>Hàng Loạt</span>
             </button>
-
-            <button
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                activeTab === 'history'
-                  ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-md font-bold'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-              }`}
-            >
-              <History className="w-4 h-4" />
-              <span>Lịch Sử ({history.length})</span>
-            </button>
           </div>
         </div>
 
         {/* Tab 1: Single URL Converter */}
         {activeTab === 'single' && (
           <div className="space-y-6">
-            <UrlConverter onConvert={handleNewConversion} />
+            {/* 1. Box Dán Link */}
+            <UrlConverter
+              onConvert={handleNewConversion}
+              externalUrl={selectedBestSellerUrl}
+            />
 
-            {/* Converted Result Display */}
+            {/* 2. Section Kết Quả */}
             {latestConverted && (
               <ConversionResult
                 link={latestConverted}
@@ -170,31 +133,25 @@ export default function App() {
               />
             )}
 
-            {/* Quick History Preview */}
-            {history.length > 0 && !latestConverted && (
-              <HistoryList
-                history={history.slice(0, 3)}
-                onClearHistory={handleClearHistory}
-                onDeleteLink={handleDeleteHistoryLink}
-                onOpenQrModal={handleOpenQrModal}
-              />
-            )}
+            {/* 3. Section Bán Chạy (Hình ảnh mini) */}
+            <BestSellers onSelectUrl={handleSelectBestSeller} />
+
+            {/* 4. Section Hot Trending (Grid 2 cột mobile) */}
+            <HotTrending onSelectUrl={handleSelectBestSeller} />
+
+            {/* 5. Section Thương Hiệu & Đối Tác */}
+            <BrandEcosystem />
           </div>
         )}
 
         {/* Tab 2: Batch / Bulk Converter */}
         {activeTab === 'batch' && (
-          <BatchConverter onAddBatchToHistory={handleAddBatchToHistory} />
-        )}
-
-        {/* Tab 3: History List */}
-        {activeTab === 'history' && (
-          <HistoryList
-            history={history}
-            onClearHistory={handleClearHistory}
-            onDeleteLink={handleDeleteHistoryLink}
-            onOpenQrModal={handleOpenQrModal}
-          />
+          <div className="space-y-6">
+            <BatchConverter />
+            <BestSellers onSelectUrl={handleSelectBestSeller} />
+            <HotTrending onSelectUrl={handleSelectBestSeller} />
+            <BrandEcosystem />
+          </div>
         )}
       </main>
 
