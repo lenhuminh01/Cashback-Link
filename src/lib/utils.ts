@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { PlatformType, ConvertedLink, PlatformConfig, UserWallet, PayoutRequest } from '../types';
+import { PlatformType, ConvertedLink, PlatformConfig } from '../types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -141,7 +141,7 @@ export function extractTitle(url: string): string {
   } catch {
     // ignore
   }
-  return 'Sản phẩm mua sắm';
+  return 'Product Link';
 }
 
 export function generateHash(str: string): string {
@@ -154,98 +154,33 @@ export function generateHash(str: string): string {
   return (positive + 'x9k2m7q').slice(0, 6);
 }
 
-export const MERCHANT_COMMISSION_CAP = 50000;
-export const MAX_USER_CASHBACK_CAP = 27000;
-
-export function calculateEstimatedCashback(platform: PlatformType, itemPrice: number = 250000): { rate: number; cashback: number } {
-  let rate = 2.2;
-  if (platform === 'shopee') rate = 2.5;
-  if (platform === 'tiktok') rate = 2.2;
-  if (platform === 'lazada') rate = 2.0;
-
-  const grossCommissionRaw = itemPrice * (rate / 100);
-  const grossCommission = Math.min(grossCommissionRaw, MERCHANT_COMMISSION_CAP);
-  const netCommission = grossCommission * 0.9;
-  const rawUserShare = netCommission * 0.6;
-  const userCashback = Math.min(rawUserShare, MAX_USER_CASHBACK_CAP);
-  const cashback = Math.max(1000, Math.round(userCashback / 500) * 500);
-
-  return { rate, cashback };
-}
-
-export function getOrCreateDeviceId(): string {
-  const key = 'cashback_device_id_v2';
-  let deviceId = localStorage.getItem(key);
-  if (!deviceId) {
-    deviceId = `dev_${Math.random().toString(36).slice(2, 10)}`;
-    localStorage.setItem(key, deviceId);
-  }
-  return deviceId;
-}
-
-/**
- * Server-side AccessTrade API Link Generation (Real Tracking Link)
- */
-export async function requestAccessTradeConversion(originalUrl: string, subId?: string): Promise<ConvertedLink> {
-  const activeSubId = subId || getOrCreateDeviceId();
-  const platform = detectPlatform(originalUrl);
-  const { rate, cashback } = calculateEstimatedCashback(platform);
-
-  try {
-    const response = await fetch('/api/affiliate/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        original_url: originalUrl,
-        sub_id: activeSubId,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success && data.data) {
-      return {
-        ...data.data,
-        estimatedCashback: cashback,
-        commissionRate: rate,
-        status: 'pending',
-      };
-    }
-  } catch (err) {
-    console.warn('AccessTrade Backend API unavailable, falling back:', err);
-  }
-
-  // Fallback if backend API is offline
-  return createCleanShortLink(originalUrl, activeSubId);
-}
-
-export function createCleanShortLink(originalUrl: string, subId?: string): ConvertedLink {
+export function createCleanShortLink(originalUrl: string, subId: string = 'default'): ConvertedLink {
   const platform = detectPlatform(originalUrl);
   const normalizedUrl = normalizeUrl(originalUrl, platform);
   const hash = generateHash(originalUrl + Date.now().toString());
   const title = extractTitle(originalUrl);
-  const { rate, cashback } = calculateEstimatedCashback(platform);
-  const activeSubId = subId || getOrCreateDeviceId();
 
-  // Use shorten.asia format for authentic AccessTrade short link structure
-  const shortUrl = `https://shorten.asia/${hash}`;
-  const affiliateUrl = `https://go.isclix.com/deep_link/5378520536398812039/4751584435713464237?url=${encodeURIComponent(originalUrl)}&sub1=${activeSubId}`;
+  let shortUrl = '';
+  if (platform === 'shopee') {
+    shortUrl = `https://shope.ee/${hash}`;
+  } else if (platform === 'tiktok') {
+    shortUrl = `https://vt.tiktok.com/${hash}`;
+  } else if (platform === 'lazada') {
+    shortUrl = `https://s.lazada.co/${hash}`;
+  } else {
+    shortUrl = `https://link.short/${hash}`;
+  }
 
   return {
     id: `link_${Date.now()}_${hash}`,
     originalUrl,
     normalizedUrl,
-    affiliateUrl,
+    affiliateUrl: originalUrl, // Direct link
     shortUrl,
     platform,
-    subId: activeSubId,
+    subId,
     createdAt: new Date().toISOString(),
     title,
-    estimatedCashback: cashback,
-    commissionRate: rate,
-    status: 'pending',
   };
 }
 

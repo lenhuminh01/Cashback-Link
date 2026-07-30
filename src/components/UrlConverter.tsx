@@ -7,7 +7,7 @@ import {
   Flame
 } from 'lucide-react';
 import { PlatformType, ConvertedLink } from '../types';
-import { detectPlatform, isValidUrl, PLATFORMS, requestAccessTradeConversion, BEST_SELLERS } from '../lib/utils';
+import { detectPlatform, isValidUrl, PLATFORMS, createCleanShortLink, BEST_SELLERS } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface UrlConverterProps {
@@ -33,7 +33,7 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
     }
   }, [inputUrl]);
 
-  const processUrl = async (urlToProcess: string) => {
+  const processUrl = (urlToProcess: string) => {
     const clean = urlToProcess.trim();
     if (!clean) {
       setErrorMsg('Vui lòng dán hoặc nhập đường link sản phẩm');
@@ -47,19 +47,14 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
 
     setIsConverting(true);
 
-    try {
-      // Call AccessTrade API server endpoint to generate authentic tracking URL
-      const link = await requestAccessTradeConversion(clean);
+    setTimeout(() => {
+      const link = createCleanShortLink(clean);
       onConvert(link);
       setIsConverting(false);
 
-      // Open authentic AccessTrade tracking link (shorten.asia or go.isclix.com) to log real click
-      const redirectTarget = link.shortUrl || link.affiliateUrl || clean;
-      window.open(redirectTarget, '_blank', 'noopener,noreferrer');
-    } catch (err: any) {
-      setIsConverting(false);
-      setErrorMsg(err.message || 'Không thể kết nối AccessTrade API');
-    }
+      // Auto redirect/jump directly to product page
+      window.open(clean, '_blank', 'noopener,noreferrer');
+    }, 150);
   };
 
   const handleAction = async (e?: React.FormEvent) => {
@@ -140,7 +135,7 @@ export const UrlConverter: React.FC<UrlConverterProps> = ({ onConvert }) => {
                 type="submit"
                 disabled={isConverting}
                 className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white transition-all shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-75"
-                title="Tạo link và nhảy sang trang sản phẩm AccessTrade"
+                title="Tạo link và nhảy sang trang sản phẩm"
               >
                 {isConverting ? (
                   <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
