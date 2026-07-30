@@ -22,7 +22,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, setTheme }) => {
           <div>
             <div className="flex items-baseline gap-2">
               <span className="font-black text-lg tracking-tight text-zinc-900 dark:text-white">
-                Cashback <span className="text-blue-600 dark:text-blue-500">Link</span>
+                Snap<span className="text-blue-600 dark:text-blue-500">Link</span>
               </span>
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 hidden sm:block">

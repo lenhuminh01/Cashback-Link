@@ -1,19 +1,15 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# SnapLink - Shopee, TikTok Shop & Lazada Smart Link Generator
 
-# Run and deploy your AI Studio app
+SnapLink là công cụ rút gọn, làm sạch tham số rác và tạo đường link mua sắm thông minh hỗ trợ các sàn e-Commerce hàng đầu: Shopee, TikTok Shop và Lazada.
 
-This contains everything you need to run your app locally.
-https://ai.studio/apps/0eccc48e-b1e6-4d11-9e76-4af30e750c68
+## Features
+- ⚡ **Single & Bulk URL Processing**: Dán link đơn lẻ hoặc hàng loạt.
+- 🛍️ **Best Sellers & Hot Trending**: Tích hợp danh mục sản phẩm hot xu hướng.
+- 🌐 **Brand Ecosystem**: Hệ sinh thái đối tác thương hiệu (Thời trang, Du lịch, Tài chính, Điện tử).
+- 🌓 **Light & Dark Mode**: Giao diện sáng tối hiện đại.
 
 ## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Clone repository
+2. Install dependencies: `npm install`
+3. Configure `.env` file (`ACCESS_TRADE_API_KEY`, campaign IDs)
+4. Start dev server: `npm run dev`
