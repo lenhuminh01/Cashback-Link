@@ -21,7 +21,6 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<'single' | 'batch'>('single');
   const [latestConverted, setLatestConverted] = useState<ConvertedLink | null>(null);
-  const [selectedBestSellerUrl, setSelectedBestSellerUrl] = useState<string>('');
   const [qrModalLink, setQrModalLink] = useState<ConvertedLink | null>(null);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
@@ -52,10 +51,6 @@ export default function App() {
 
   const handleNewConversion = (link: ConvertedLink) => {
     setLatestConverted(link);
-  };
-
-  const handleSelectBestSeller = (url: string) => {
-    setSelectedBestSellerUrl(url);
   };
 
   const handleOpenQrModal = (link: ConvertedLink) => {
@@ -120,10 +115,7 @@ export default function App() {
         {activeTab === 'single' && (
           <div className="space-y-6">
             {/* 1. Box Dán Link */}
-            <UrlConverter
-              onConvert={handleNewConversion}
-              externalUrl={selectedBestSellerUrl}
-            />
+            <UrlConverter onConvert={handleNewConversion} />
 
             {/* 2. Section Kết Quả */}
             {latestConverted && (
@@ -133,11 +125,11 @@ export default function App() {
               />
             )}
 
-            {/* 3. Section Bán Chạy (Hình ảnh mini) */}
-            <BestSellers onSelectUrl={handleSelectBestSeller} />
+            {/* 3. Section Bán Chạy (Nút Mua Ngay mở thẳng link Shopee Affiliate) */}
+            <BestSellers />
 
-            {/* 4. Section Hot Trending (Grid 2 cột mobile) */}
-            <HotTrending onSelectUrl={handleSelectBestSeller} />
+            {/* 4. Section Hot Trending (Nút Mua Ngay mở thẳng link Shopee Affiliate) */}
+            <HotTrending />
 
             {/* 5. Section Thương Hiệu & Đối Tác */}
             <BrandEcosystem />
@@ -148,8 +140,8 @@ export default function App() {
         {activeTab === 'batch' && (
           <div className="space-y-6">
             <BatchConverter />
-            <BestSellers onSelectUrl={handleSelectBestSeller} />
-            <HotTrending onSelectUrl={handleSelectBestSeller} />
+            <BestSellers />
+            <HotTrending />
             <BrandEcosystem />
           </div>
         )}

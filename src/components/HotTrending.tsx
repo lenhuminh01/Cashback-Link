@@ -5,12 +5,14 @@ import { ProductItem } from '../types';
 import { PLATFORMS } from '../lib/utils';
 import { motion } from 'motion/react';
 
-interface HotTrendingProps {
-  onSelectUrl: (url: string) => void;
-}
-
-export const HotTrending: React.FC<HotTrendingProps> = ({ onSelectUrl }) => {
+export const HotTrending: React.FC = () => {
   const hotTrending = productsData.hotTrending as ProductItem[];
+
+  const handleOpenLink = (url: string) => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl p-4 sm:p-5 shadow-xl border border-zinc-200 dark:border-zinc-800 space-y-4 transition-all">
@@ -43,7 +45,7 @@ export const HotTrending: React.FC<HotTrendingProps> = ({ onSelectUrl }) => {
               key={item.id}
               whileHover={{ y: -3 }}
               transition={{ duration: 0.15 }}
-              onClick={() => onSelectUrl(item.url)}
+              onClick={() => handleOpenLink(item.url)}
               className="group p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800/80 hover:border-blue-500/40 transition-all flex flex-col justify-between cursor-pointer space-y-2.5"
             >
               {/* Product Thumbnail Container with Platform Overlay Badge */}
@@ -66,12 +68,12 @@ export const HotTrending: React.FC<HotTrendingProps> = ({ onSelectUrl }) => {
                 </p>
               </div>
 
-              {/* Action Button */}
+              {/* Mua Ngay Action Button */}
               <button
                 type="button"
                 className="w-full py-1.5 px-2 rounded-lg text-xs font-bold text-white bg-blue-600 group-hover:bg-blue-700 active:scale-95 transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer"
               >
-                <span>Tạo link</span>
+                <span>Mua ngay</span>
                 <ExternalLink className="w-3 h-3" />
               </button>
             </motion.div>
